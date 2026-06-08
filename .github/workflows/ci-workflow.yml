@@ -17,5 +17,4 @@ jobs:
       - name: Run MLflow Project
         shell: bash -l {0}
         run: |
-          pip install mlflow
-          mlflow run MLProject --no-conda
+          mlflow run MLProject --env-manager local
