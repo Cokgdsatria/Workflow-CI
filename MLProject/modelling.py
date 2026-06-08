@@ -17,15 +17,30 @@ def main(data_path):
     if os.getenv("GITHUB_ACTIONS") != "true":
         mlflow.set_tracking_uri("http://localhost:5000")
 
-    mlflow.set_experiment("Amazon_Reviews_Basic_Autolog")
+    env_run_id = os.getenv("MLFLOW_RUN_ID")
+    env_experiment_id = os.getenv("MLFLOW_EXPERIMENT_ID")
+
+    if not env_experiment_id:
+        mlflow.set_experiment("Amazon_Reviews_Basic_Autolog")
+
+    active_run = mlflow.active_run()
+    if env_run_id:
+        if active_run and active_run.info.run_id != env_run_id:
+            mlflow.end_run()
+            active_run = None
+        if not active_run:
+            mlflow.start_run(run_id=env_run_id)
+    elif not active_run:
+        mlflow.start_run(run_name="CLI_Training Run")
+
+    mlflow.set_tag("mlflow.runName", "CLI_Training Run")
     mlflow.sklearn.autolog()
 
-    with mlflow.start_run(run_name="CLI_Training Run"):
-        pipeline = Pipeline([
-            ('tfidf', TfidfVectorizer(max_features=5000)),
-            ('clf', LogisticRegression(random_state=42, max_iter=1000))
-        ])
-        pipeline.fit(X_train, y_train)
+    pipeline = Pipeline([
+        ('tfidf', TfidfVectorizer(max_features=5000)),
+        ('clf', LogisticRegression(random_state=42, max_iter=1000))
+    ])
+    pipeline.fit(X_train, y_train)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
