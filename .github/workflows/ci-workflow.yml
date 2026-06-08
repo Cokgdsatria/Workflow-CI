@@ -1,0 +1,21 @@
+name: MLflow CI Workflow
+
+on: [push]
+
+jobs:
+  train-model:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Conda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: mlflow-env
+          environment-file: MLProject/conda.yaml
+      
+      - name: Run MLflow Project
+        shell: bash -l {0}
+        run: |
+          pip install mlflow
+          mlflow run MLProject --no-conda
